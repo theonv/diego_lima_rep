@@ -1,0 +1,104 @@
+.diego {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    width: 280px;
+
+    margin-left: 25px;
+}
+
+a {
+    color: white;
+    width: min-content;  
+    font-size: 20px;  
+}
+
+.pgs {
+    display: flex;
+    width: 350px;
+    justify-content: space-between;
+}
+
+/*FIM DA ESTILIZAÇÃO DA NAVBAR*/
+
+
+.topbar {
+    display: flex;
+    justify-content: space-between;
+    white-space: nowrap;
+    margin-top: 15px;
+    margin-bottom: 30px;
+}
+
+.search {
+    background: #222;
+    border-radius: 6px;
+    width: 500px;
+    height: 34px;
+    border: 2px solid #000;
+    color: #ccc;
+
+    padding: 0px 10px;
+}
+
+.select {
+    background: #222;
+    border-radius: 6px;
+    padding: 7px 0px;
+    border: 2px solid #000;
+    color: #ccc;
+    
+    width: 40%;
+    margin-left: 10px;
+    min-width: 138px
+}
+
+label {
+    font-size: 14px;
+    color: #ccc;
+}
+
+.corpo {
+    width: 70%;
+    margin: 0 auto;
+    text-align: center;
+}
+
+
+.modulo {
+    background: #1c1c1c;
+    border: 1px solid #333;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    overflow: hidden;
+    color: #fff;
+    font-family: Arial, sans-serif;
+}
+
+.header-mod {
+    background: #222;
+    padding: 15px;
+    user-select: none;
+    transition: background 0.2s;
+
+    color:white; font-size: 25px; text-align: left;
+}
+
+.header-mod:hover {
+    background: #2d2d2d;
+}
+
+/*estilização do conteudo de cada modulo qnd estiver fechado*/
+.content-mod {
+    height: auto;
+    max-height: 0;
+    overflow: hidden;
+    padding: 0 15px;
+    transition: max-height 0.1s ;
+}
+
+/*estilização do conteudo de cada modulo qnd estiver aberto*/
+.modulo.open .content-mod {
+    padding: 15px;
+    max-height: 500px;
+}

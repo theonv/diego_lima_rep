@@ -1,0 +1,28 @@
+.diego {
+    display: flex;
+    align-items: center;
+    height: 100%;
+    width: 280px;
+
+    margin-left: 25px;
+}
+
+a {
+    color: white;
+    width: min-content;
+    font-size: 20px;
+}
+
+.pgs {
+    display: flex;
+    width: 350px;
+    justify-content: space-between;
+}
+
+/*FIM DA ESTILIZAÇÃO DA NAVBAR*/
+
+.corpo {
+    width: 70%;
+    margin: 0 auto;
+    text-align: center;
+}

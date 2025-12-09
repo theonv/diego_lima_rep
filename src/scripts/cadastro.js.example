@@ -1,0 +1,125 @@
+// Arquivo: frontend/src/scripts/cadastro.js
+
+// --- 1. GATILHO DE VISIBILIDADE DE PARCELAS ---
+// Este listener deve ser anexado ao DOM assim que a página carregar
+document.getElementById('pagamento').addEventListener('change', function () {
+    const formaPagamento = this.value;
+    const parcelasGroup = document.getElementById('parcelas-group');
+
+    // Mostra/Esconde o campo de parcelas com base na Forma de Pagamento
+    if (formaPagamento === 'cartao') {
+        parcelasGroup.style.display = 'block';
+    } else {
+        parcelasGroup.style.display = 'none';
+    }
+});
+
+// --- 2. LISTENER PRINCIPAL DE SUBMISSÃO (O ENVIO) ---
+document.querySelector('.checkout-form').addEventListener('submit', async (event) => {
+    event.preventDefault(); // Impede a recarga da página
+
+    // Captura dos dados
+    const nome = document.getElementById('nome').value;
+    const email = document.getElementById('email').value;
+    const telefone = document.getElementById('telefone').value;
+    const cpf = document.getElementById('cpf').value;
+    const modalidade = document.getElementById('modalidade').value;
+    const formaPagamento = document.getElementById('pagamento').value;
+    const parcelas = document.getElementById('parcelas').value;
+
+    // Validação básica
+    if (!modalidade) {
+        alert("Por favor, selecione uma modalidade.");
+        return;
+    }
+
+    // Alerta de funcionalidade pendente (Cartão)
+    if (formaPagamento === 'cartao') {
+        alert("A funcionalidade de Cartão de Crédito ainda não foi totalmente implementada (tokenização segura). Por favor, utilize PIX ou Boleto.");
+        return;
+    }
+
+    // Montagem do Payload para o Back-End
+    const dadosUsuario = {
+        name: nome,
+        email: email,
+        phone: telefone,
+        cpf: cpf,
+        modality: modalidade,
+        paymentMethod: formaPagamento,
+        // Envia 1x se for Pix/Boleto, ou o valor real para Cartão (se fosse implementado)
+        installments: 1
+    };
+
+    try {
+        // Envio para o Back-End (Gera o pagamento e calcula o preço)
+        const response = await fetch('/api/enrollment/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dadosUsuario)
+        });
+
+        const resultado = await response.json();
+
+        if (response.ok) {
+            // SUCESSO: Cadastro Pendente criado e pagamento gerado
+            const { qrCodeBase64, qrCodeCopyPaste, ticketUrl } = resultado.payment;
+            const { paymentId, valor } = resultado;
+
+            // 1. Altera a visualização
+            const qrBox = document.querySelector('.qr-placeholder');
+
+            // Define o conteúdo visual (PIX ou BOLETO)
+            qrBox.innerHTML = `
+                <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+                    <h4 style="color: #fff; font-size: 1.2rem;">
+                       Valor a pagar: <strong style="color: #39ff14;">R$ ${valor.toFixed(2)}</strong>
+                    </h4>
+                    
+                    ${formaPagamento === 'pix' ? `
+                        <p style="color: #39ff14; font-weight: bold;">Escaneie o QR Code ou use o código:</p>
+                        <img src="data:image/png;base64,${qrCodeBase64}" 
+                             style="width: 200px; border-radius: 10px; border: 4px solid white;">
+
+                        <textarea readonly style="width: 100%; height: 80px; background: #222; color: #fff; border: 1px solid #555; border-radius: 5px; padding: 10px;">${qrCodeCopyPaste}</textarea>
+                    ` : `
+                        <p style="color: #fff; font-weight: bold;">Seu Boleto foi gerado!</p>
+                        <a href="${ticketUrl}" target="_blank" class="btn-submit" 
+                           style="padding: 10px 20px; font-size: 1rem; width: auto; background: #9d4edd; text-decoration: none;">
+                            Visualizar Boleto
+                        </a>
+                    `}
+
+                    <a href="${ticketUrl}" target="_blank" style="color: #9d4edd; text-decoration: underline; margin-top: 10px;">Ver detalhes do pagamento</a>
+                </div>
+            `;
+            qrBox.style.opacity = "1";
+            qrBox.style.border = "2px solid #39ff14";
+
+            // 2. INÍCIO DO LOOP DE VERIFICAÇÃO (Polling) - Apenas para PIX
+            if (formaPagamento === 'pix') {
+                const intervalo = setInterval(async () => {
+                    console.log("Verificando pagamento...");
+
+                    const check = await fetch(`/api/enrollment/status/${paymentId}`);
+                    const dadosCheck = await check.json();
+
+                    if (dadosCheck.status === 'approved') {
+                        clearInterval(intervalo);
+                        alert("PAGAMENTO CONFIRMADO! Bem-vindo ao curso. Em breve entraremos em contato para disponibilizar a plataforma oficial de Videoaulas e Simulados!");
+                        window.location.href = "/";
+                    }
+                }, 3000);
+            }
+
+
+        } else {
+            // ERRO (CPF/Email duplicado ou erro de validação)
+            alert('Erro: ' + (resultado.error || 'Erro desconhecido'));
+        }
+
+    } catch (error) {
+        console.error('Erro de conexão:', error);
+        alert('Erro ao conectar com o servidor. Verifique se o backend está rodando.');
+    }
+});

@@ -1,0 +1,39 @@
+* {
+    margin: 0;
+    padding: 0;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+
+    width: 100%;
+    background: linear-gradient(to bottom, #000000, #51059B);
+}
+
+body {
+    min-height: 100vh;
+    /* 100% da altura da viewport */
+    background: linear-gradient(to bottom, #000000, #51059B);
+
+    background-repeat: no-repeat;
+    background-attachment: fixed; /* opcional, fixa o gradiente na viewport */
+    background-size: cover;
+}
+
+.logo {
+    height: 55px;
+    width: 55px;
+    border-radius: 15px;
+}
+
+.navbar {
+    background-color: black;
+    height: 80px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+}
