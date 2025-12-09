@@ -6,7 +6,7 @@
 
 */
 -- AlterTable
-ALTER TABLE `enrollment` ADD COLUMN `amount` DOUBLE NOT NULL,
+ALTER TABLE `Enrollment` ADD COLUMN `amount` DOUBLE NOT NULL,
     ADD COLUMN `modality` VARCHAR(191) NOT NULL,
     ADD COLUMN `paymentId` VARCHAR(191) NULL,
     ADD COLUMN `status` VARCHAR(191) NOT NULL DEFAULT 'PENDING';

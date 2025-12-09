@@ -3,10 +3,10 @@ import express from "express";
 import cors from "cors";
 import path from 'path';
 import { fileURLToPath } from 'url';
-import enrollmentRoutes from "./routes/enrollmentRoutes.js";
+import enrollmentRoutes from "./src/routes/enrollmentRoutes.js";
 
 const __filename = fileURLToPath(import.meta.url);
-// Considerando que este arquivo está em: api/src/server.js
+// Este arquivo está em: api/server.js
 const __dirname = path.dirname(__filename);
 
 
@@ -18,13 +18,11 @@ app.use(express.json());
 
 
 // --- ARQUIVOS ESTÁTICOS ---
-// O caminho agora sai de api/src (../..), vai para a raiz e entra nas pastas novas
+// Caminhos corretos partindo de api/server.js
 app.use('/styles', express.static(path.join(__dirname, '../src/styles')));
 app.use('/scripts', express.static(path.join(__dirname, '../src/scripts')));
 app.use('/images', express.static(path.join(__dirname, '../public/imagens')));
-
-// Documentos
-app.use('/docs', express.static(path.join(__dirname, '../../public/docs')));
+app.use('/public', express.static(path.join(__dirname, '../public')));
 
 //ROTA DA API - CADASTRO
 app.use("/api/enrollment", enrollmentRoutes);
@@ -32,12 +30,12 @@ app.use("/api/enrollment", enrollmentRoutes);
 
 // --- ROTAS DE PÁGINAS ---
 app.get('/', (req, res) => {
-    // Caminho ajustado para: raiz/src/pages/lpg.html
+    // Caminho: api/server.js -> ../src/pages/lpg.html
     res.sendFile(path.join(__dirname, '../src/pages/lpg.html'));
 });
 
 app.get('/cadastro', (req, res) => {
-    // Caminho ajustado para: raiz/src/pages/cadastro.html
+    // Caminho: api/server.js -> ../src/pages/cadastro.html
     res.sendFile(path.join(__dirname, '../src/pages/cadastro.html'));
 });
 
