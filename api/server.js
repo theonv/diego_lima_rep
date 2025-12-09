@@ -15,9 +15,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Favicon
+app.get('/favicon.ico', (req, res) => {
+    res.sendFile(path.join(__dirname, '../public/imagens/logo_diego.png'));
+});
 
 
-// --- ARQUIVOS ESTÁTICOS ---
 // Caminhos corretos partindo de api/server.js
 app.use('/styles', express.static(path.join(__dirname, '../src/styles')));
 app.use('/scripts', express.static(path.join(__dirname, '../src/scripts')));
