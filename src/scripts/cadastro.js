@@ -5,11 +5,10 @@
 const mp = new MercadoPago('APP_USR-f2069842-413b-44c0-89c4-9ede49a0e6c1');
 
 // Lógica para definir a URL da API automaticamente
-// Se estiver no localhost (desenvolvimento), aponta para a porta 4000.
-// Se estiver em produção (hospedagem), usa string vazia para usar o domínio atual.
-const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-
-const API_BASE_URL = isLocalhost ? 'http://localhost:4000' : '';
+// No Vercel (Prod ou Dev), a API está no mesmo domínio/porta
+const API_BASE_URL = ''; 
+// Se precisar rodar o backend separado localmente (ex: node server.js na porta 4000), descomente abaixo:
+// const API_BASE_URL = 'http://localhost:4000';
 
 let paymentMethodId = '';
 let intervaloVerificacao = null;

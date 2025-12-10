@@ -1,0 +1,428 @@
+/* --- CSS Reset e Variáveis Globais --- */
+:root {
+    --bg-black: #050505;
+    --bg-purple-dark: #220029;
+    --color-purple-neon: #9d4edd;
+    --color-lime-green: #39ff14;
+    --color-white: #ffffff;
+    --color-torn-edge: #e0e0e0;
+    --section-spacing: 80px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Montserrat', sans-serif;
+    line-height: 1.6;
+    background-color: var(--bg-black);
+    color: var(--color-white);
+    overflow-x: hidden;
+}
+
+h1,
+h2,
+h3,
+h4 {
+    text-transform: uppercase;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+/* Utilitários */
+.text-center {
+    text-align: center;
+}
+
+.text-purple {
+    color: var(--color-purple-neon);
+    text-shadow: 0 0 10px rgba(157, 78, 221, 0.3);
+}
+
+.text-lime {
+    color: var(--color-lime-green);
+    text-shadow: 0 0 10px rgba(57, 255, 20, 0.3);
+}
+
+.text-white {
+    color: var(--color-white);
+}
+
+.bold {
+    font-weight: 700;
+}
+
+/* --- Botões --- */
+.btn {
+    display: inline-block;
+    padding: 18px 40px;
+    border-radius: 50px;
+    text-decoration: none;
+    font-weight: 800;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.btn-purple-large {
+    background-color: var(--color-purple-neon);
+    color: var(--color-white);
+    font-size: 1.3rem;
+    width: 100%;
+    max-width: 450px;
+    box-shadow: 0 0 20px rgba(157, 78, 221, 0.5);
+}
+
+.btn-purple-large:hover {
+    box-shadow: 0 0 30px rgba(157, 78, 221, 0.8);
+}
+
+/* --- Papel Rasgado --- */
+.torn-divider {
+    position: relative;
+    height: 70px;
+    width: 100%;
+    z-index: 10;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 120' preserveAspectRatio='none'%3E%3Cpath d='M0,0V46.29c47,0,115,38.13,193.67,58.34s159.69,15.34,210.82,9.75,108.46-27.93,163.86-40.5S688.69,56,721.81,56s68.2,23.74,144.66,40.51,165.09-15.35,205.48-40.51C1131.28,23,1170.62,0,1200,0Z' fill='%23e0e0e0'/%3E%3C/svg%3E");
+    background-size: 150% 100%;
+    background-position: center bottom;
+}
+
+.torn-bottom {
+    transform: scaleY(-1);
+    top: 1px;
+}
+
+.torn-top {
+    bottom: 1px;
+}
+
+/* --- HERO --- */
+#hero {
+    background-color: var(--bg-black);
+    padding: 50px 0 var(--section-spacing) 0;
+    position: relative;
+}
+
+.hero-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 40px;
+}
+
+.hero-title h1 {
+    font-size: 2.5rem;
+    line-height: 1.1;
+}
+
+.hero-title h2 {
+    font-size: 2.8rem;
+    margin-bottom: 20px;
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+    width: 100%;
+}
+
+.hero-image-container {
+    flex: 1;
+    text-align: center;
+}
+
+.hero-image-container img {
+    max-width: 100%;
+    height: auto;
+    max-height: 600px;
+    object-fit: cover;
+    border-bottom: 3px solid var(--color-purple-neon);
+    filter: brightness(1.1) contrast(1.1);
+}
+
+.hero-features {
+    flex: 1;
+}
+
+.hero-features ul {
+    list-style: none;
+    text-align: left;
+    display: inline-block;
+}
+
+.hero-features li {
+    margin-bottom: 15px;
+    position: relative;
+    padding-left: 30px;
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.hero-features li::before {
+    content: '\f00c';
+    font-family: 'Font Awesome 6 Free';
+    font-weight: 900;
+    color: var(--color-lime-green);
+    position: absolute;
+    left: 0;
+    top: 2px;
+    font-size: 1.2rem;
+    text-shadow: 0 0 8px var(--color-lime-green);
+}
+
+/* --- NOVO: CSS PARA SEÇÃO 2022 (ANTÔNIO NETO) --- */
+#highlight-2022 {
+    background-color: var(--bg-purple-dark);
+    padding: 60px 0;
+}
+
+.title-highlight-2022 {
+    font-size: 1.8rem;
+    margin-bottom: 40px;
+    line-height: 1.3;
+}
+
+.highlight-card-2022 {
+    /* Efeito de cartão para destacar a imagem */
+    /* border: 2px dashed var(--color-purple-neon); opcional */
+    border-radius: 20px;
+    padding: 20px;
+    display: inline-block;
+    max-width: 1000px;
+}
+
+.highlight-content-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+}
+
+.highlight-img img {
+    max-width: 100%;
+    height: auto;
+    /* border-radius: 15px; REMOVIDO */
+    /* box-shadow: 0 0 25px rgba(0, 0, 0, 0.5); REMOVIDO */
+    max-height: 450px;
+}
+
+.highlight-info {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+}
+
+/* Badges inspirados na imagem original */
+.name-badge {
+    background-color: #00a8ff;
+    /* Azul claro */
+    color: white;
+    font-weight: 900;
+    font-size: 1.8rem;
+    padding: 8px 25px;
+    display: inline-block;
+    transform: skew(-10deg);
+    margin-bottom: 15px;
+    box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.5);
+}
+
+.badge-dark {
+    background-color: #000080;
+    /* Azul escuro */
+    padding: 0 10px;
+    margin-left: 5px;
+}
+
+.course-badge {
+    background-color: var(--color-purple-neon);
+    color: white;
+    font-weight: 800;
+    padding: 8px 20px;
+    border-radius: 30px;
+    display: inline-block;
+    font-size: 1rem;
+    text-transform: uppercase;
+    margin-bottom: 10px;
+}
+
+.score-2022 {
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    text-shadow: 4px 4px 0 #000;
+    font-family: 'Montserrat', sans-serif;
+}
+
+/* --- SEÇÃO PROVA SOCIAL (2024) --- */
+#social-proof {
+    background-color: var(--bg-purple-dark);
+    padding: 0 0 var(--section-spacing) 0;
+    /* Ajuste para colar na seção de cima */
+    text-align: center;
+    position: relative;
+}
+
+.score-highlight {
+    font-size: 6rem;
+    font-weight: 900;
+    line-height: 1;
+    margin: 20px 0 40px 0;
+}
+
+.students-photo {
+    min-height: 200px;
+    margin: 0 auto;
+}
+
+.students-photo img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 15px;
+}
+
+/* --- OFERTA --- */
+#offer-section {
+    background-color: var(--bg-black);
+    padding: var(--section-spacing) 0;
+    text-align: center;
+    position: relative;
+}
+
+.offer-box {
+    background: linear-gradient(145deg, #0f0f0f, #1a1a1a);
+    padding: 40px;
+    border-radius: 25px;
+    max-width: 700px;
+    margin: 0 auto 50px auto;
+    border: 3px solid var(--color-purple-neon);
+    box-shadow: 0 0 30px rgba(157, 78, 221, 0.2), inset 0 0 20px rgba(157, 78, 221, 0.1);
+}
+
+.offer-box h3 {
+    font-size: 2rem;
+    margin-bottom: 30px;
+}
+
+.benefits-list {
+    list-style: none;
+    text-align: left;
+    display: inline-block;
+}
+
+.benefits-list li {
+    margin-bottom: 15px;
+    font-weight: 700;
+    position: relative;
+    padding-left: 25px;
+    font-size: 1.05rem;
+}
+
+.benefits-list li::before {
+    content: '•';
+    color: var(--color-purple-neon);
+    font-size: 2em;
+    position: absolute;
+    left: 0;
+    top: -8px;
+    text-shadow: 0 0 8px var(--color-purple-neon);
+}
+
+.cta-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.tagline-finish {
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    letter-spacing: 2px;
+}
+
+/* --- FOOTER --- */
+footer {
+    background-color: #000;
+    padding: 50px 0;
+    text-align: center;
+    border-top: 1px solid #222;
+}
+
+.footer-logo-text {
+    font-weight: 900;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+}
+
+.footer-logo-text span {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--color-purple-neon);
+}
+
+/* --- RESPONSIVIDADE --- */
+@media (min-width: 768px) {
+    .hero-title h1 {
+        font-size: 3.5rem;
+    }
+
+    .hero-title h2 {
+        font-size: 4rem;
+    }
+
+    .hero-content {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .hero-image-container {
+        order: 1;
+        text-align: left;
+    }
+
+    .hero-features {
+        order: 2;
+    }
+
+    .offer-box {
+        padding: 50px;
+    }
+
+    /* Ajuste da Seção 2022 para PC */
+    .highlight-content-wrapper {
+        flex-direction: row;
+        justify-content: center;
+        text-align: left;
+    }
+
+    .highlight-info {
+        text-align: left;
+        margin-left: 30px;
+    }
+}
