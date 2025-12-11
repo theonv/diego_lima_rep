@@ -34,6 +34,38 @@ document.getElementById('cardNumber').addEventListener('input', function (e) {
     e.target.value = input;
 });
 
+// --- MÁSCARA CPF (em tempo real) ---
+const cpfField = document.getElementById('cpf');
+if (cpfField) {
+    cpfField.addEventListener('input', function (e) {
+        const raw = e.target.value.replace(/\D/g, '');
+        e.target.value = (typeof window.formatCPF === 'function') ? window.formatCPF(raw) : raw;
+    });
+}
+
+// --- MÁSCARA TELEFONE (em tempo real) ---
+const phoneField = document.getElementById('telefone');
+if (phoneField) {
+    phoneField.addEventListener('input', function (e) {
+        let v = e.target.value.replace(/\D/g, '').slice(0, 11); // até 11 dígitos (DD + 9)
+        if (v.length <= 2) {
+            e.target.value = v;
+            return;
+        }
+
+        const ddd = v.slice(0, 2);
+        const rest = v.slice(2);
+
+        if (rest.length <= 4) {
+            e.target.value = `(${ddd}) ${rest}`;
+        } else if (rest.length <= 7) {
+            e.target.value = `(${ddd}) ${rest.slice(0, rest.length - 4)}-${rest.slice(-4)}`;
+        } else { // 9 dígitos no corpo
+            e.target.value = `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
+        }
+    });
+}
+
 // --- 2. DETECTAR BANDEIRA DO CARTÃO ---
 document.getElementById('cardNumber').addEventListener('keyup', async (event) => {
     // Remove os espaços visuais para enviar o número limpo para a API
