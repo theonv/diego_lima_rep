@@ -209,26 +209,38 @@ async function enviarParaBackend(payload) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
-        
-        console.log(response)
-
         const resultado = await response.json();
 
-        console.log("criou oau")
+        // 409 -> Já pago
+        if (response.status === 409) {
+            alert(resultado.error || 'Usuário já possui inscrição paga.');
+            return;
+        }
 
-        if (response.ok) {
-            if (payload.paymentMethod === 'pix') {
-                mostrarPix(resultado);
-
-            } else if (payload.paymentMethod === 'cartao') {
-                alert("Pagamento Aprovado com Sucesso! Bem-vindo(a) ao curso.");
-                window.location.href = "/";
-            }
-
-        } else {
+        if (!response.ok) {
             // Mostra o erro que veio do backend (ex: Saldo insuficiente)
             alert('Erro: ' + (resultado.error || 'Erro desconhecido'));
+            return;
+        }
+
+        // Se o backend indicar resume (há pagamento pendente), reapresentamos o QR/infos
+        if (resultado.resume) {
+            // resultado já contém payment, paymentId e valor
+            mostrarPix(resultado);
+            return;
+        }
+
+        if (payload.paymentMethod === 'pix') {
+            mostrarPix(resultado);
+
+        } else if (payload.paymentMethod === 'cartao') {
+            // Para cartão, o backend retorna um status — se aprovado, confirmamos, senão informamos o status
+            if (resultado.status === 'approved') {
+                alert("Pagamento Aprovado com Sucesso! Bem-vindo(a) ao curso.");
+                window.location.href = "/";
+            } else {
+                alert('Pagamento em processamento. Status: ' + (resultado.status || 'desconhecido'));
+            }
         }
 
     } catch (error) {
@@ -241,9 +253,11 @@ function mostrarPix(resultado) {
     const { qrCodeBase64, qrCodeCopyPaste } = resultado.payment;
     const { paymentId, valor } = resultado;
     const qrBox = document.querySelector('.qr-placeholder');
+    const resumeNote = resultado.resume ? '<p style="color:#ffd700; font-weight:700;">Você já iniciou um pagamento. Retome o pagamento abaixo.</p>' : '';
 
     qrBox.innerHTML = `
         <div style="text-align: center; gap: 15px; display: flex; flex-direction: column; align-items: center;">
+            ${resumeNote}
             <h4 style="color: #fff;">Valor: <strong style="color: #39ff14;">R$ ${valor.toFixed(2)}</strong></h4>
             <p style="color:#39ff14; font-weight:bold;">Escaneie o QR Code:</p>
             <img src="data:image/png;base64,${qrCodeBase64}" style="width:200px; border-radius:10px; border: 4px solid white;">

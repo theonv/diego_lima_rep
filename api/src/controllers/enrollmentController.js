@@ -76,20 +76,65 @@ export const createEnrollment = async (req, res) => {
         let alunoId;
 
         if (alunoExistente) {
-            console.log(`🔄 [createEnrollment] Aluno encontrado (ID: ${alunoExistente.id}). Atualizando...`);
-            // Se já existe (mesmo que PAID), atualizamos os dados para a nova tentativa
-            // (Se for PAID, o usuário está comprando de novo? Assumimos que sim)
-            const updated = await prisma.enrollment.update({
-                where: { id: alunoExistente.id },
-                data: alunoData
-            });
+            console.log(`🔄 [createEnrollment] Aluno encontrado (ID: ${alunoExistente.id}).`);
+
+            // 1) Impedir sobrescrição de um PAID
+            if (alunoExistente.status === 'PAID') {
+                console.warn('⚠️ [createEnrollment] Tentativa de criação/atualização para usuário já PAID.');
+                return res.status(409).json({ error: 'Usuário já possui inscrição paga.' });
+            }
+
+            // 2) Se estiver PENDING e já tiver paymentId, verificar o estado no Mercado Pago
+            if (alunoExistente.status === 'PENDING' && alunoExistente.paymentId) {
+                try {
+                    const payment = new Payment(client);
+                    const existingMp = await payment.get({ id: alunoExistente.paymentId });
+                    const mpStatus = existingMp.status;
+                    console.log(`🔎 [createEnrollment] Status MP do paymentId ${alunoExistente.paymentId}:`, mpStatus);
+
+                    // Se MP já aprovou, atualiza como PAID e retorna informação
+                    if (mpStatus === 'approved') {
+                        await prisma.enrollment.update({ where: { id: alunoExistente.id }, data: { status: 'PAID' } });
+                        return res.status(200).json({ resume: false, message: 'Pagamento já aprovado.' , status: 'approved' });
+                    }
+
+                    // Se pagamento ainda estiver em processamento/pendente, retornamos os dados para o frontend retomar
+                    const resumableStates = ['pending', 'in_process', 'processing', 'pending_waiting_transfer'];
+                    if (resumableStates.includes(mpStatus)) {
+                        return res.status(200).json({
+                            resume: true,
+                            paymentId: alunoExistente.paymentId,
+                            status: mpStatus,
+                            valor: alunoExistente.amount,
+                            payment: {
+                                qrCodeBase64: existingMp.point_of_interaction?.transaction_data?.qr_code_base64,
+                                qrCodeCopyPaste: existingMp.point_of_interaction?.transaction_data?.qr_code,
+                            }
+                        });
+                    }
+
+                    // Se MP rejeitou definitivamente, marcamos REJECTED e deixamos seguir para criar novo pagamento
+                    if (mpStatus === 'rejected' || mpStatus === 'cancelled' || mpStatus === 'refunded') {
+                        console.log(`⚠️ [createEnrollment] Pagamento anterior (${alunoExistente.paymentId}) com status ${mpStatus}. Marcando como REJECTED.`);
+                        await prisma.enrollment.update({ where: { id: alunoExistente.id }, data: { status: 'REJECTED' } });
+                        // prosseguir criando novo pagamento abaixo
+                    }
+
+                } catch (err) {
+                    console.error('❌ [createEnrollment] Erro ao consultar MP para paymentId existente:', err.message);
+                    // Em caso de erro ao consultar MP, prosseguir com a criação/atualização normalmente
+                }
+            }
+
+            // Atualiza (ou re-tenta) criando um novo registro de tentativa
+            console.log('🔄 [createEnrollment] Atualizando dados do aluno para nova tentativa...');
+            const updated = await prisma.enrollment.update({ where: { id: alunoExistente.id }, data: alunoData });
             alunoId = updated.id;
-            console.log("✅ [createEnrollment] Aluno atualizado com sucesso.");
+            console.log('✅ [createEnrollment] Aluno atualizado com sucesso.');
+
         } else {
-            console.log("✨ [createEnrollment] Aluno não encontrado. Criando novo registro...");
-            const created = await prisma.enrollment.create({
-                data: alunoData
-            });
+            console.log('✨ [createEnrollment] Aluno não encontrado. Criando novo registro...');
+            const created = await prisma.enrollment.create({ data: alunoData });
             alunoId = created.id;
             console.log(`✅ [createEnrollment] Aluno criado com sucesso. ID: ${alunoId}`);
         }
@@ -112,10 +157,17 @@ export const createEnrollment = async (req, res) => {
 
         // --- SELEÇÃO DO MÉTODO ---
         if (paymentMethod === 'cartao') {
+            // Validação simples de 'installments' (deve ser inteiro entre 1 e 12)
+            const parcelas = Number(installments) || 1;
+            if (!Number.isInteger(parcelas) || parcelas < 1 || parcelas > 12) {
+                console.warn('⚠️ [createEnrollment] installments inválido:', installments);
+                return res.status(400).json({ error: 'Parâmetro installments inválido. Deve ser inteiro entre 1 e 12.' });
+            }
+
             paymentData.token = token; // Token seguro
-            paymentData.installments = installments; // 1 a 12
+            paymentData.installments = parcelas; // 1 a 12
             paymentData.payment_method_id = paymentMethodId; // 'visa', 'master', etc. (Vem do Front)
-            
+
         } else if (paymentMethod === 'boleto') {
             paymentData.payment_method_id = 'bolbradesco';
         } else {
@@ -136,6 +188,12 @@ export const createEnrollment = async (req, res) => {
         //cartão rejeitado
         if (mpResponse.status === 'rejected') {
             console.warn("⚠️ [createEnrollment] Pagamento rejeitado.");
+            // Marca explicitamente como REJECTED no banco
+            try {
+                await prisma.enrollment.update({ where: { id: alunoId }, data: { status: 'REJECTED' } });
+            } catch (err) {
+                console.error('❌ [createEnrollment] Erro ao marcar REJECTED no DB:', err.message);
+            }
             return res.status(400).json({ error: "Pagamento rejeitado pelo banco. Verifique os dados ou limite." });
         }
 
