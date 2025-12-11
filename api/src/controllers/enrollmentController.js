@@ -101,16 +101,29 @@ export const createEnrollment = async (req, res) => {
                     // Se pagamento ainda estiver em processamento/pendente, retornamos os dados para o frontend retomar
                     const resumableStates = ['pending', 'in_process', 'processing', 'pending_waiting_transfer'];
                     if (resumableStates.includes(mpStatus)) {
-                        return res.status(200).json({
-                            resume: true,
-                            paymentId: alunoExistente.paymentId,
-                            status: mpStatus,
-                            valor: alunoExistente.amount,
-                            payment: {
-                                qrCodeBase64: existingMp.point_of_interaction?.transaction_data?.qr_code_base64,
-                                qrCodeCopyPaste: existingMp.point_of_interaction?.transaction_data?.qr_code,
+                        // Se o usuário solicitou mudança de modalidade, permitimos criar novo pagamento
+                        if (alunoExistente.modality && alunoExistente.modality !== modality) {
+                            console.log(`🔁 [createEnrollment] Usuário pediu mudança de modalidade (${alunoExistente.modality} -> ${modality}). Criando novo pagamento.`);
+                            try {
+                                await prisma.enrollment.update({ where: { id: alunoExistente.id }, data: { status: 'REJECTED' } });
+                                console.log('✅ [createEnrollment] Pagamento anterior marcado como REJECTED para permitir nova tentativa.');
+                            } catch (err) {
+                                console.error('❌ [createEnrollment] Erro ao marcar REJECTED no DB:', err.message);
                             }
-                        });
+                            // prosseguir criando novo pagamento abaixo
+                        } else {
+                            return res.status(200).json({
+                                resume: true,
+                                paymentId: alunoExistente.paymentId,
+                                status: mpStatus,
+                                valor: alunoExistente.amount,
+                                modalidadeAnterior: alunoExistente.modality,
+                                payment: {
+                                    qrCodeBase64: existingMp.point_of_interaction?.transaction_data?.qr_code_base64,
+                                    qrCodeCopyPaste: existingMp.point_of_interaction?.transaction_data?.qr_code,
+                                }
+                            });
+                        }
                     }
 
                     // Se MP rejeitou definitivamente, marcamos REJECTED e deixamos seguir para criar novo pagamento
@@ -296,5 +309,31 @@ export const checkPaymentStatus = async (req, res) => {
         if (error.code) console.error("Código do Erro Prisma:", error.code);
         
         res.status(500).json({ error: "Erro ao processar matrícula", details: error.message });
+    }
+};
+
+export const getExistingEnrollment = async (req, res) => {
+    try {
+        const { cpf, email } = req.query;
+        if (!cpf && !email) return res.status(400).json({ error: 'cpf or email required' });
+
+        const cpfLimpo = cpf ? String(cpf).replace(/\D/g, '') : undefined;
+
+        const found = await prisma.enrollment.findFirst({
+            where: { OR: [{ email: email || undefined }, { cpf: cpfLimpo || undefined }] }
+        });
+
+        if (!found) return res.json({ exists: false });
+
+        return res.json({
+            exists: true,
+            status: found.status,
+            modality: found.modality,
+            paymentId: found.paymentId || null,
+            amount: found.amount || null
+        });
+    } catch (err) {
+        console.error('❌ [getExistingEnrollment] Erro:', err.message);
+        res.status(500).json({ error: 'Erro ao consultar inscrição existente' });
     }
 };

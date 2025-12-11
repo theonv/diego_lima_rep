@@ -86,6 +86,79 @@ document.getElementById('cardNumber').addEventListener('keyup', async (event) =>
     if (cardNumber.length < 6) paymentMethodId = '';
 });
 
+// --- Modal de confirmação customizada (retorna Promise<boolean>) ---
+function showConfirmModal(message) {
+    return new Promise((resolve) => {
+        // Overlay
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.left = '0';
+        overlay.style.top = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.background = 'rgba(0,0,0,0.6)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '10000';
+
+        const box = document.createElement('div');
+        box.style.maxWidth = '520px';
+        box.style.width = '90%';
+        box.style.background = '#0b0b0b';
+        box.style.padding = '20px';
+        box.style.borderRadius = '12px';
+        box.style.boxShadow = '0 10px 30px rgba(0,0,0,0.7)';
+        box.style.color = '#fff';
+        box.style.textAlign = 'center';
+
+        const msg = document.createElement('p');
+        msg.style.marginBottom = '18px';
+        msg.style.lineHeight = '1.4';
+        msg.innerText = message;
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'center';
+        actions.style.gap = '12px';
+
+        const btnCancel = document.createElement('button');
+        btnCancel.innerText = 'Cancelar';
+        btnCancel.style.padding = '10px 16px';
+        btnCancel.style.borderRadius = '8px';
+        btnCancel.style.border = '1px solid #444';
+        btnCancel.style.background = '#111';
+        btnCancel.style.color = '#fff';
+        btnCancel.style.cursor = 'pointer';
+
+        const btnConfirm = document.createElement('button');
+        btnConfirm.innerText = 'Confirmar';
+        btnConfirm.style.padding = '10px 16px';
+        btnConfirm.style.borderRadius = '8px';
+        btnConfirm.style.border = 'none';
+        btnConfirm.style.background = '#9d4edd';
+        btnConfirm.style.color = '#fff';
+        btnConfirm.style.cursor = 'pointer';
+
+        btnCancel.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve(false);
+        });
+
+        btnConfirm.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve(true);
+        });
+
+        actions.appendChild(btnCancel);
+        actions.appendChild(btnConfirm);
+        box.appendChild(msg);
+        box.appendChild(actions);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    });
+}
+
 // 3. CONTROLE DE VISIBILIDADE (CARTÃO/PIX)
 document.getElementById('pagamento').addEventListener('change', function () {
     const formaPagamento = this.value;
@@ -150,6 +223,26 @@ document.querySelector('.checkout-form').addEventListener('submit', async (event
 
     // Limpa intervalo anterior se existir
     if (intervaloVerificacao) clearInterval(intervaloVerificacao);
+
+    // --- PRE-CHECK: Verifica inscrição existente para avisar antes de trocar modalidade ---
+    try {
+        const cpfClean = (dadosBasicos.cpf || '').replace(/\D/g, '');
+        if (cpfClean) {
+            const check = await fetch(`${API_BASE_URL}/api/enrollment/existing?cpf=${cpfClean}`);
+            if (check.ok) {
+                const info = await check.json();
+                if (info.exists && info.status === 'PENDING' && info.paymentId) {
+                    if (info.modality && info.modality !== dadosBasicos.modality) {
+                        const confirmMsg = 'Detectamos que já existe um pagamento pendente em outra modalidade.\nAo continuar será gerado um novo pagamento e o anterior será cancelado.\nDeseja prosseguir?';
+                        if (!(await showConfirmModal(confirmMsg))) return; // usuário cancelou (modal custom)
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.warn('Erro ao checar inscrição existente:', err.message);
+        // não bloqueia o fluxo
+    }
 
     // --- LÓGICA DO CARTÃO DE CRÉDITO ---
     if (dadosBasicos.paymentMethod === 'cartao') {
@@ -253,7 +346,10 @@ function mostrarPix(resultado) {
     const { qrCodeBase64, qrCodeCopyPaste } = resultado.payment;
     const { paymentId, valor } = resultado;
     const qrBox = document.querySelector('.qr-placeholder');
-    const resumeNote = resultado.resume ? '<p style="color:#ffd700; font-weight:700;">Você já iniciou um pagamento. Retome o pagamento abaixo.</p>' : '';
+    // Mostrar nota de resume somente se a modalidade anterior for igual à selecionada (ou não informada)
+    const currentModality = document.getElementById('modalidade') ? document.getElementById('modalidade').value : null;
+    const showResume = resultado.resume && (!resultado.modalidadeAnterior || resultado.modalidadeAnterior === currentModality);
+    const resumeNote = showResume ? '<p style="color:#ffd700; font-weight:700;">Você já iniciou um pagamento. Retome o pagamento abaixo.</p>' : '';
 
     qrBox.innerHTML = `
         <div style="text-align: center; gap: 15px; display: flex; flex-direction: column; align-items: center;">

@@ -154,16 +154,29 @@ async function createEnrollment(req, res) {
 
                     const resumableStates = ['pending', 'in_process', 'processing', 'pending_waiting_transfer'];
                     if (resumableStates.includes(mpStatus)) {
-                        return res.status(200).json({
-                            resume: true,
-                            paymentId: alunoExistente.paymentId,
-                            status: mpStatus,
-                            valor: alunoExistente.amount,
-                            payment: {
-                                qrCodeBase64: existingMp.point_of_interaction?.transaction_data?.qr_code_base64,
-                                qrCodeCopyPaste: existingMp.point_of_interaction?.transaction_data?.qr_code,
+                        // Se o usuário solicitou mudança de modalidade, permitimos criar novo pagamento
+                        if (alunoExistente.modality && alunoExistente.modality !== modality) {
+                            console.log(`🔁 [createEnrollment] Usuário pediu mudança de modalidade (${alunoExistente.modality} -> ${modality}). Criando novo pagamento.`);
+                            try {
+                                await prisma.enrollment.update({ where: { id: alunoExistente.id }, data: { status: 'REJECTED' } });
+                                console.log('✅ [createEnrollment] Pagamento anterior marcado como REJECTED para permitir nova tentativa.');
+                            } catch (err) {
+                                console.error('❌ [createEnrollment] Erro ao marcar REJECTED no DB:', err.message);
                             }
-                        });
+                            // prosseguir criando novo pagamento abaixo
+                        } else {
+                            return res.status(200).json({
+                                resume: true,
+                                paymentId: alunoExistente.paymentId,
+                                status: mpStatus,
+                                valor: alunoExistente.amount,
+                                modalidadeAnterior: alunoExistente.modality,
+                                payment: {
+                                    qrCodeBase64: existingMp.point_of_interaction?.transaction_data?.qr_code_base64,
+                                    qrCodeCopyPaste: existingMp.point_of_interaction?.transaction_data?.qr_code,
+                                }
+                            });
+                        }
                     }
 
                     if (mpStatus === 'rejected' || mpStatus === 'cancelled' || mpStatus === 'refunded') {
