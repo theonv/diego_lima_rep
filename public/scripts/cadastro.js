@@ -81,6 +81,23 @@ document.getElementById('termos').addEventListener('change', function () {
 document.querySelector('.checkout-form').addEventListener('submit', async (event) => {
     event.preventDefault();
 
+    // --- VALIDAÇÃO DE CPF (front-end) ---
+    const cpfInput = document.getElementById('cpf');
+    const cpfValue = cpfInput.value || '';
+    // Se a função isValidCPF estiver disponível (foi adicionada em validateCpf.js), use-a
+    if (typeof window.isValidCPF === 'function') {
+        if (!window.isValidCPF(cpfValue)) {
+            alert('CPF inválido. Verifique o número e tente novamente.');
+            cpfInput.focus();
+            return;
+        }
+    }
+
+    // Formata visualmente o CPF (opcional)
+    if (typeof window.formatCPF === 'function') {
+        cpfInput.value = window.formatCPF(cpfValue);
+    }
+
     const termosAceitos = document.getElementById('termos').checked;
     if (!termosAceitos) {
         alert("Você precisa ler e aceitar os Termos de Uso e Contrato para continuar.");

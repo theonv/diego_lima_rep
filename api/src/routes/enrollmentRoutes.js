@@ -7,4 +7,4 @@ router.post("/register", createEnrollment);
 
 router.get("/status/:id", checkPaymentStatus)
 
-export default router;
+export default router; 
