@@ -363,6 +363,45 @@ h4 {
     letter-spacing: 2px;
 }
 
+/* WhatsApp CTA */
+.whatsapp-cta-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.whatsapp-cta {
+    background: linear-gradient(180deg, #28a745, #1f8f3a);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 18px rgba(31, 143, 58, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.whatsapp-cta i {
+    font-size: 1.2rem;
+}
+
+.whatsapp-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(31, 143, 58, 0.35);
+}
+
+.whatsapp-note {
+    color: #c8f7d0;
+    font-size: 0.95rem;
+    text-align: center;
+    max-width: 420px;
+}
+
 /* --- FOOTER --- */
 footer {
     background-color: #000;
