@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { MercadoPagoConfig, Payment } from 'mercadopago';
+import nodemailer from 'nodemailer';
 
 const prisma = new PrismaClient();
 
@@ -34,6 +35,54 @@ async function calcularPreco(modalidade) {
         valorFinal = (modalidade === 'COM_MATERIAL') ? PRECOS.TIER_3.COM : PRECOS.TIER_3.SEM;
     }
     return valorFinal;
+}
+
+// --- Envio de e-mail (nodemailer) ---
+async function sendEnrollmentEmail(toEmail, studentName, modality, amount) {
+    try {
+        // Configuração simplificada: usar apenas GMAIL_USER e GMAIL_PASS
+        const gmailUser = process.env.GMAIL_USER;
+        const gmailPass = process.env.GMAIL_PASS;
+        const fromAddress = process.env.SMTP_FROM || gmailUser || 'no-reply@seusite.com';
+
+        if (!gmailUser || !gmailPass) {
+            console.warn('⚠️ [sendEnrollmentEmail] Credenciais Gmail não configuradas. Logando o e-mail no console como fallback.');
+            console.log(`Email para: ${toEmail}\nAssunto: Matrícula confirmada\nCorpo: Olá ${studentName}, sua matrícula na modalidade ${modality} foi confirmada. Valor: R$ ${Number(amount).toFixed(2)}.`);
+            return;
+        }
+
+        const transporter = nodemailer.createTransport({
+            host: 'smtp.gmail.com',
+            port: 587,
+            secure: false,
+            auth: {
+                user: gmailUser,
+                pass: gmailPass
+            }
+        });
+
+        const subject = 'Confirmação de Matrícula - Curso de Matemática';
+        const html = `
+            <p>Olá ${studentName},</p>
+            <p>Seu pagamento foi confirmado e sua matrícula na modalidade <strong>${modalidade}</strong> foi finalizada com sucesso.</p>
+            <p><strong>Valor:</strong> R$ ${Number(amount).toFixed(2)}</p>
+            <p>Em breve entraremos em contato com as instruções de acesso ao material.</p>
+            <br>
+            <p>Atenciosamente,<br>Equipe Diego Lima Cursos</p>
+        `;
+
+        await transporter.sendMail({
+            from: fromAddress,
+            to: toEmail,
+            subject,
+            html
+        });
+
+        console.log(`✅ [sendEnrollmentEmail] E-mail enviado para ${toEmail}`);
+
+    } catch (err) {
+        console.error('❌ [sendEnrollmentEmail] Erro ao enviar e-mail:', err.message);
+    }
 }
 
 export const createEnrollment = async (req, res) => {
@@ -95,6 +144,12 @@ export const createEnrollment = async (req, res) => {
                     // Se MP já aprovou, atualiza como PAID e retorna informação
                     if (mpStatus === 'approved') {
                         await prisma.enrollment.update({ where: { id: alunoExistente.id }, data: { status: 'PAID' } });
+                        // Enviar email de confirmação
+                        try {
+                            await sendEnrollmentEmail(alunoExistente.email, alunoExistente.name, alunoExistente.modality, alunoExistente.amount);
+                        } catch (e) {
+                            console.error('❌ Erro ao enviar e-mail após detectar pagamento aprovado:', e.message);
+                        }
                         return res.status(200).json({ resume: false, message: 'Pagamento já aprovado.' , status: 'approved' });
                     }
 
@@ -210,6 +265,22 @@ export const createEnrollment = async (req, res) => {
             return res.status(400).json({ error: "Pagamento rejeitado pelo banco. Verifique os dados ou limite." });
         }
 
+        // Se o pagamento foi aprovado imediatamente (cartão), marca PAID e envia e-mail
+        if (mpResponse.status === 'approved') {
+            try {
+                await prisma.enrollment.update({ where: { id: alunoId }, data: { status: 'PAID' } });
+            } catch (err) {
+                console.error('❌ [createEnrollment] Erro ao marcar PAID no DB:', err.message);
+            }
+            try {
+                // Obtemos os dados atuais do aluno para preencher o e-mail
+                const aluno = await prisma.enrollment.findUnique({ where: { id: alunoId } });
+                await sendEnrollmentEmail(aluno.email, aluno.name, aluno.modality, aluno.amount);
+            } catch (err) {
+                console.error('❌ [createEnrollment] Erro ao enviar e-mail após aprovação imediata:', err.message);
+            }
+        }
+
         res.status(201).json({
             success: true,
             paymentId: mpResponse.id.toString(),
@@ -268,6 +339,12 @@ export const checkPaymentStatus = async (req, res) => {
                 where: { id: existingPayment.id },
                 data: { status: 'PAID' }
             });
+            // Enviar e-mail de confirmação
+            try {
+                await sendEnrollmentEmail(existingPayment.email, existingPayment.name, existingPayment.modality, existingPayment.amount);
+            } catch (err) {
+                console.error('❌ Erro ao enviar e-mail após confirmação via polling:', err.message);
+            }
         } else {
             // Fallback: Se por algum motivo o registro não existir (ex: criado antes dessa mudança),
             // tentamos criar/atualizar usando o metadata como antes.
@@ -294,10 +371,20 @@ export const checkPaymentStatus = async (req, res) => {
                     where: { id: alunoExistente.id },
                     data: novoAluno
                 });
+                try {
+                    await sendEnrollmentEmail(alunoExistente.email || novoAluno.email, novoAluno.name, novoAluno.modality, novoAluno.amount);
+                } catch (err) {
+                    console.error('❌ Erro ao enviar e-mail após criar/atualizar via metadata:', err.message);
+                }
             } else {
                 await prisma.enrollment.create({
                     data: novoAluno
                 });
+                try {
+                    await sendEnrollmentEmail(novoAluno.email, novoAluno.name, novoAluno.modality, novoAluno.amount);
+                } catch (err) {
+                    console.error('❌ Erro ao enviar e-mail após criar novo aluno via metadata:', err.message);
+                }
             }
         }
 
