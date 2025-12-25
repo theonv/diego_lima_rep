@@ -1,5 +1,3 @@
-// Arquivo: src/scripts/cadastro.js
-
 // --- CONFIGURAÇÃO INICIAL ---
 // PUBLIC KEY DE PRODUÇÃO (Começa com "APP_USR-")
 const mp = new MercadoPago('APP_USR-f2069842-413b-44c0-89c4-9ede49a0e6c1');
@@ -209,14 +207,16 @@ document.querySelector('.checkout-form').addEventListener('submit', async (event
         return;
     }
 
-    // Captura dados básicos
+    // Captura dados básicos (AGORA INCLUINDO O CUPOM)
     const dadosBasicos = {
         name: document.getElementById('nome').value,
         email: document.getElementById('email').value,
         phone: document.getElementById('telefone').value,
         cpf: document.getElementById('cpf').value,
         modality: document.getElementById('modalidade').value,
-        paymentMethod: document.getElementById('pagamento').value
+        paymentMethod: document.getElementById('pagamento').value,
+        // Captura o cupom, verificando se o elemento existe para evitar erros
+        coupon: document.getElementById('input-cupom') ? document.getElementById('input-cupom').value : ''
     };
 
     if (!dadosBasicos.modality) return alert("Selecione a modalidade!");

@@ -53,40 +53,16 @@ export default async function handler(req, res) {
 
     const { method, url } = req;
 
-    // Route: POST /api/enrollment/register
-    // Vercel rewrites /api/enrollment/register to /api/enrollment
-    // So we check if it's a POST request.
-    // However, since we are using a single file for multiple "routes" via rewrites,
-    // we might need to check the original URL or just assume based on method if they are distinct enough.
-    // In this case:
-    // POST is always register
-    // GET is always status check (with ID)
-
     if (method === 'POST') {
         return await createEnrollment(req, res);
     }
 
     if (method === 'GET') {
-        // Extract ID from query or path
-        // Since we rewrite /api/enrollment/status/:id -> /api/enrollment?id=:id (implicitly or explicitly)
-        // Actually, Vercel rewrites pass query params.
-        // But our rewrite rule was: { "source": "/api/enrollment/status/:id", "destination": "/api/enrollment" }
-        // This means the ID won't be in req.query.id automatically unless we map it.
-        // Let's fix the rewrite rule in vercel.json to:
-        // { "source": "/api/enrollment/status/:id", "destination": "/api/enrollment?id=:id" }
-        // OR we can parse it from req.url if Vercel preserves it.
-        // Vercel functions receive the rewritten URL in req.url usually? No, they receive the destination.
-        
-        // Let's rely on query params. I will update vercel.json to map the ID to a query param.
-        
         const { id } = req.query;
         if (id) {
             req.params = { id };
             return await checkPaymentStatus(req, res);
         }
-        
-        // Fallback if ID is not in query (maybe direct call?)
-        // If the rewrite didn't work as expected, we might need to parse req.url
     }
 
     res.status(404).json({ error: 'Not found' });
@@ -95,17 +71,26 @@ export default async function handler(req, res) {
 async function createEnrollment(req, res) {
     try {
         console.log("🚀 [createEnrollment] Iniciando processamento...");
-        const { name, email, cpf, phone, modality, paymentMethod, installments, token, paymentMethodId } = req.body;
+        const { name, email, cpf, phone, modality, paymentMethod, installments, token, paymentMethodId, coupon } = req.body;
         
-        console.log("📦 [createEnrollment] Body recebido:", JSON.stringify({ name, email, cpf, phone, modality, paymentMethod }, null, 2));
+        console.log("📦 [createEnrollment] Body recebido:", JSON.stringify({ name, email, cpf, phone, modality, paymentMethod, coupon }, null, 2));
 
         if (!modality) {
             console.error("❌ [createEnrollment] Modalidade não fornecida.");
             return res.status(400).json({ error: "Modalidade inválida." });
         }
 
-        const valorCobrado = await calcularPreco(modality);
-        console.log("💰 [createEnrollment] Valor calculado:", valorCobrado);
+        let valorCobrado = await calcularPreco(modality);
+        
+        // --- LÓGICA DE CUPOM ---
+        if (coupon && String(coupon).trim().toUpperCase() === 'MARIANALIMA') {
+            console.log("🎟️ [createEnrollment] Cupom aplicado: MARIANALIMA (10% OFF)");
+            valorCobrado = valorCobrado * 0.90; // Aplica 10% de desconto
+        }
+
+        // Garante duas casas decimais
+        valorCobrado = Number(valorCobrado.toFixed(2));
+        console.log("💰 [createEnrollment] Valor Final a Cobrar:", valorCobrado);
 
         // 1. CRIA OU ATUALIZA O USUÁRIO NO BANCO COMO "PENDING" ANTES DO PAGAMENTO
         console.log("📝 [createEnrollment] Preparando dados do aluno (PENDING)...");

@@ -64,7 +64,7 @@ async function sendEnrollmentEmail(toEmail, studentName, modality, amount) {
         const subject = 'Confirmação de Matrícula - Curso de Matemática';
         const html = `
             <p>Olá ${studentName},</p>
-            <p>Seu pagamento foi confirmado e sua matrícula na modalidade <strong>${modalidade}</strong> foi finalizada com sucesso.</p>
+            <p>Seu pagamento foi confirmado e sua matrícula na modalidade <strong>${modality}</strong> foi finalizada com sucesso.</p>
             <p><strong>Valor:</strong> R$ ${Number(amount).toFixed(2)}</p>
             <p>Em breve entraremos em contato com as instruções de acesso ao material.</p>
             <br>
@@ -88,18 +88,29 @@ async function sendEnrollmentEmail(toEmail, studentName, modality, amount) {
 export const createEnrollment = async (req, res) => {
     try {
         console.log("🚀 [createEnrollment] Iniciando processamento...");
-        // Recebemos 'paymentMethodId' (visa/master) e 'token' do frontend
-        const { name, email, cpf, phone, modality, paymentMethod, installments, token, paymentMethodId } = req.body;
+        // Recebemos 'paymentMethodId' (visa/master), 'token' e agora 'coupon' do frontend
+        const { name, email, cpf, phone, modality, paymentMethod, installments, token, paymentMethodId, coupon } = req.body;
         
-        console.log("📦 [createEnrollment] Body recebido:", JSON.stringify({ name, email, cpf, phone, modality, paymentMethod }, null, 2));
+        console.log("📦 [createEnrollment] Body recebido:", JSON.stringify({ name, email, cpf, phone, modality, paymentMethod, coupon }, null, 2));
 
         if (!modality) {
             console.error("❌ [createEnrollment] Modalidade não fornecida.");
             return res.status(400).json({ error: "Modalidade inválida." });
         }
 
-        const valorCobrado = await calcularPreco(modality);
-        console.log("💰 [createEnrollment] Valor calculado:", valorCobrado);
+        let valorCobrado = await calcularPreco(modality);
+        
+        // --- LÓGICA DE CUPOM ---
+        if (coupon && String(coupon).trim().toUpperCase() === 'MARIANALIMA') {
+            console.log("🎟️ [createEnrollment] Cupom aplicado: MARIANALIMA (10% OFF)");
+            valorCobrado = valorCobrado * 0.90; // Aplica 10% de desconto
+        }
+        
+        // Garante duas casas decimais
+        valorCobrado = Number(valorCobrado.toFixed(2));
+        
+        console.log("💰 [createEnrollment] Valor Final a Cobrar:", valorCobrado);
+
 
         // 1. CRIA OU ATUALIZA O USUÁRIO NO BANCO COMO "PENDING" ANTES DO PAGAMENTO
         console.log("📝 [createEnrollment] Preparando dados do aluno (PENDING)...");
