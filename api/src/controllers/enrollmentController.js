@@ -110,6 +110,7 @@ export const createEnrollment = async (req, res) => {
         valorCobrado = Number(valorCobrado.toFixed(2));
         
         console.log("💰 [createEnrollment] Valor Final a Cobrar:", valorCobrado);
+       
 
 
         // 1. CRIA OU ATUALIZA O USUÁRIO NO BANCO COMO "PENDING" ANTES DO PAGAMENTO
