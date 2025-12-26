@@ -111,7 +111,8 @@ export const createEnrollment = async (req, res) => {
         
         console.log("💰 [createEnrollment] Valor Final a Cobrar:", valorCobrado);
        
-
+        // 🔎 Flag para detectar mudança de valor (cupom aplicado/removido)
+        let valorMudou = false;
 
         // 1. CRIA OU ATUALIZA O USUÁRIO NO BANCO COMO "PENDING" ANTES DO PAGAMENTO
         console.log("📝 [createEnrollment] Preparando dados do aluno (PENDING)...");
@@ -139,6 +140,14 @@ export const createEnrollment = async (req, res) => {
         if (alunoExistente) {
             console.log(`🔄 [createEnrollment] Aluno encontrado (ID: ${alunoExistente.id}).`);
 
+            // 🔎 Verifica se o valor mudou (ex: cupom aplicado ou removido)
+            valorMudou =
+                Number(alunoExistente.amount) !== Number(valorCobrado);
+
+            if (valorMudou) {
+                console.log('💸 [createEnrollment] Valor alterado. Novo pagamento será necessário.');
+            }
+            
             // 1) Impedir sobrescrição de um PAID
             if (alunoExistente.status === 'PAID') {
                 console.warn('⚠️ [createEnrollment] Tentativa de criação/atualização para usuário já PAID.');
@@ -168,23 +177,29 @@ export const createEnrollment = async (req, res) => {
                     // Se pagamento ainda estiver em processamento/pendente, retornamos os dados para o frontend retomar
                     const resumableStates = ['pending', 'in_process', 'processing', 'pending_waiting_transfer'];
                     if (resumableStates.includes(mpStatus)) {
-                        // Se o usuário solicitou mudança de modalidade, permitimos criar novo pagamento
-                        if (alunoExistente.modality && alunoExistente.modality !== modality) {
-                            console.log(`🔁 [createEnrollment] Usuário pediu mudança de modalidade (${alunoExistente.modality} -> ${modality}). Criando novo pagamento.`);
+
+                        const modalidadeMudou = alunoExistente.modality !== modality;
+
+                        if (modalidadeMudou || valorMudou) {
+                            console.log('🔁 [createEnrollment] Novo pagamento necessário (modalidade ou valor mudou)');
+
                             try {
-                                await prisma.enrollment.update({ where: { id: alunoExistente.id }, data: { status: 'REJECTED' } });
-                                console.log('✅ [createEnrollment] Pagamento anterior marcado como REJECTED para permitir nova tentativa.');
+                                await prisma.enrollment.update({
+                                    where: { id: alunoExistente.id },
+                                    data: { status: 'REJECTED' }
+                                });
+                                console.log('✅ [createEnrollment] Pagamento anterior marcado como REJECTED.');
                             } catch (err) {
-                                console.error('❌ [createEnrollment] Erro ao marcar REJECTED no DB:', err.message);
+                                console.error('❌ [createEnrollment] Erro ao marcar REJECTED:', err.message);
                             }
-                            // prosseguir criando novo pagamento abaixo
+
+                            // continua o fluxo para criar novo pagamento
                         } else {
                             return res.status(200).json({
                                 resume: true,
                                 paymentId: alunoExistente.paymentId,
                                 status: mpStatus,
                                 valor: alunoExistente.amount,
-                                modalidadeAnterior: alunoExistente.modality,
                                 payment: {
                                     qrCodeBase64: existingMp.point_of_interaction?.transaction_data?.qr_code_base64,
                                     qrCodeCopyPaste: existingMp.point_of_interaction?.transaction_data?.qr_code,

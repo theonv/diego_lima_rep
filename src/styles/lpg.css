@@ -221,13 +221,17 @@ h4 {
 .highlight-img img {
     max-width: 100%;
     height: auto;
-    border-radius: 15px;
-    box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+    /* border-radius: 15px; REMOVIDO */
+    /* box-shadow: 0 0 25px rgba(0, 0, 0, 0.5); REMOVIDO */
     max-height: 450px;
 }
 
 .highlight-info {
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
 }
 
 /* Badges inspirados na imagem original */
@@ -359,6 +363,45 @@ h4 {
     letter-spacing: 2px;
 }
 
+/* WhatsApp CTA */
+.whatsapp-cta-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.whatsapp-cta {
+    background: linear-gradient(180deg, #28a745, #1f8f3a);
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 999px;
+    text-decoration: none;
+    font-weight: 800;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 6px 18px rgba(31, 143, 58, 0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.whatsapp-cta i {
+    font-size: 1.2rem;
+}
+
+.whatsapp-cta:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 28px rgba(31, 143, 58, 0.35);
+}
+
+.whatsapp-note {
+    color: #c8f7d0;
+    font-size: 0.95rem;
+    text-align: center;
+    max-width: 420px;
+}
+
 /* --- FOOTER --- */
 footer {
     background-color: #000;
@@ -379,6 +422,32 @@ footer {
     font-weight: 600;
     letter-spacing: 3px;
     color: var(--color-purple-neon);
+}
+
+/* Ajustes para exibir a logo do Instagram ao lado do nome */
+.footer-logo-text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.footer-brand-row {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.instagram-logo {
+    width: 28px;
+    height: auto;
+    display: inline-block;
+}
+
+@media (min-width: 768px) {
+    .instagram-logo {
+        width: 32px;
+    }
 }
 
 /* --- RESPONSIVIDADE --- */

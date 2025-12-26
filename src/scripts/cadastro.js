@@ -1,5 +1,3 @@
-// Arquivo: src/scripts/cadastro.js
-
 // --- CONFIGURAÇÃO INICIAL ---
 // PUBLIC KEY DE PRODUÇÃO (Começa com "APP_USR-")
 const mp = new MercadoPago('APP_USR-f2069842-413b-44c0-89c4-9ede49a0e6c1');
@@ -34,6 +32,38 @@ document.getElementById('cardNumber').addEventListener('input', function (e) {
     e.target.value = input;
 });
 
+// --- MÁSCARA CPF (em tempo real) ---
+const cpfField = document.getElementById('cpf');
+if (cpfField) {
+    cpfField.addEventListener('input', function (e) {
+        const raw = e.target.value.replace(/\D/g, '');
+        e.target.value = (typeof window.formatCPF === 'function') ? window.formatCPF(raw) : raw;
+    });
+}
+
+// --- MÁSCARA TELEFONE (em tempo real) ---
+const phoneField = document.getElementById('telefone');
+if (phoneField) {
+    phoneField.addEventListener('input', function (e) {
+        let v = e.target.value.replace(/\D/g, '').slice(0, 11); // até 11 dígitos (DD + 9)
+        if (v.length <= 2) {
+            e.target.value = v;
+            return;
+        }
+
+        const ddd = v.slice(0, 2);
+        const rest = v.slice(2);
+
+        if (rest.length <= 4) {
+            e.target.value = `(${ddd}) ${rest}`;
+        } else if (rest.length <= 7) {
+            e.target.value = `(${ddd}) ${rest.slice(0, rest.length - 4)}-${rest.slice(-4)}`;
+        } else { // 9 dígitos no corpo
+            e.target.value = `(${ddd}) ${rest.slice(0, 5)}-${rest.slice(5)}`;
+        }
+    });
+}
+
 // --- 2. DETECTAR BANDEIRA DO CARTÃO ---
 document.getElementById('cardNumber').addEventListener('keyup', async (event) => {
     // Remove os espaços visuais para enviar o número limpo para a API
@@ -53,6 +83,79 @@ document.getElementById('cardNumber').addEventListener('keyup', async (event) =>
     }
     if (cardNumber.length < 6) paymentMethodId = '';
 });
+
+// --- Modal de confirmação customizada (retorna Promise<boolean>) ---
+function showConfirmModal(message) {
+    return new Promise((resolve) => {
+        // Overlay
+        const overlay = document.createElement('div');
+        overlay.style.position = 'fixed';
+        overlay.style.left = '0';
+        overlay.style.top = '0';
+        overlay.style.width = '100%';
+        overlay.style.height = '100%';
+        overlay.style.background = 'rgba(0,0,0,0.6)';
+        overlay.style.display = 'flex';
+        overlay.style.alignItems = 'center';
+        overlay.style.justifyContent = 'center';
+        overlay.style.zIndex = '10000';
+
+        const box = document.createElement('div');
+        box.style.maxWidth = '520px';
+        box.style.width = '90%';
+        box.style.background = '#0b0b0b';
+        box.style.padding = '20px';
+        box.style.borderRadius = '12px';
+        box.style.boxShadow = '0 10px 30px rgba(0,0,0,0.7)';
+        box.style.color = '#fff';
+        box.style.textAlign = 'center';
+
+        const msg = document.createElement('p');
+        msg.style.marginBottom = '18px';
+        msg.style.lineHeight = '1.4';
+        msg.innerText = message;
+
+        const actions = document.createElement('div');
+        actions.style.display = 'flex';
+        actions.style.justifyContent = 'center';
+        actions.style.gap = '12px';
+
+        const btnCancel = document.createElement('button');
+        btnCancel.innerText = 'Cancelar';
+        btnCancel.style.padding = '10px 16px';
+        btnCancel.style.borderRadius = '8px';
+        btnCancel.style.border = '1px solid #444';
+        btnCancel.style.background = '#111';
+        btnCancel.style.color = '#fff';
+        btnCancel.style.cursor = 'pointer';
+
+        const btnConfirm = document.createElement('button');
+        btnConfirm.innerText = 'Confirmar';
+        btnConfirm.style.padding = '10px 16px';
+        btnConfirm.style.borderRadius = '8px';
+        btnConfirm.style.border = 'none';
+        btnConfirm.style.background = '#9d4edd';
+        btnConfirm.style.color = '#fff';
+        btnConfirm.style.cursor = 'pointer';
+
+        btnCancel.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve(false);
+        });
+
+        btnConfirm.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            resolve(true);
+        });
+
+        actions.appendChild(btnCancel);
+        actions.appendChild(btnConfirm);
+        box.appendChild(msg);
+        box.appendChild(actions);
+        overlay.appendChild(box);
+        document.body.appendChild(overlay);
+    });
+}
 
 // 3. CONTROLE DE VISIBILIDADE (CARTÃO/PIX)
 document.getElementById('pagamento').addEventListener('change', function () {
@@ -81,26 +184,65 @@ document.getElementById('termos').addEventListener('change', function () {
 document.querySelector('.checkout-form').addEventListener('submit', async (event) => {
     event.preventDefault();
 
+    // --- VALIDAÇÃO DE CPF (front-end) ---
+    const cpfInput = document.getElementById('cpf');
+    const cpfValue = cpfInput.value || '';
+    // Se a função isValidCPF estiver disponível (foi adicionada em validateCpf.js), use-a
+    if (typeof window.isValidCPF === 'function') {
+        if (!window.isValidCPF(cpfValue)) {
+            alert('CPF inválido. Verifique o número e tente novamente.');
+            cpfInput.focus();
+            return;
+        }
+    }
+
+    // Formata visualmente o CPF (opcional)
+    if (typeof window.formatCPF === 'function') {
+        cpfInput.value = window.formatCPF(cpfValue);
+    }
+
     const termosAceitos = document.getElementById('termos').checked;
     if (!termosAceitos) {
         alert("Você precisa ler e aceitar os Termos de Uso e Contrato para continuar.");
         return;
     }
 
-    // Captura dados básicos
+    // Captura dados básicos (AGORA INCLUINDO O CUPOM)
     const dadosBasicos = {
         name: document.getElementById('nome').value,
         email: document.getElementById('email').value,
         phone: document.getElementById('telefone').value,
         cpf: document.getElementById('cpf').value,
         modality: document.getElementById('modalidade').value,
-        paymentMethod: document.getElementById('pagamento').value
+        paymentMethod: document.getElementById('pagamento').value,
+        // Captura o cupom, verificando se o elemento existe para evitar erros
+        coupon: document.getElementById('input-cupom') ? document.getElementById('input-cupom').value : ''
     };
 
     if (!dadosBasicos.modality) return alert("Selecione a modalidade!");
 
     // Limpa intervalo anterior se existir
     if (intervaloVerificacao) clearInterval(intervaloVerificacao);
+
+    // --- PRE-CHECK: Verifica inscrição existente para avisar antes de trocar modalidade ---
+    try {
+        const cpfClean = (dadosBasicos.cpf || '').replace(/\D/g, '');
+        if (cpfClean) {
+            const check = await fetch(`${API_BASE_URL}/api/enrollment/existing?cpf=${cpfClean}`);
+            if (check.ok) {
+                const info = await check.json();
+                if (info.exists && info.status === 'PENDING' && info.paymentId) {
+                    if (info.modality && info.modality !== dadosBasicos.modality) {
+                        const confirmMsg = 'Detectamos que já existe um pagamento pendente em outra modalidade.\nAo continuar será gerado um novo pagamento e o anterior será cancelado.\nDeseja prosseguir?';
+                        if (!(await showConfirmModal(confirmMsg))) return; // usuário cancelou (modal custom)
+                    }
+                }
+            }
+        }
+    } catch (err) {
+        console.warn('Erro ao checar inscrição existente:', err.message);
+        // não bloqueia o fluxo
+    }
 
     // --- LÓGICA DO CARTÃO DE CRÉDITO ---
     if (dadosBasicos.paymentMethod === 'cartao') {
@@ -160,26 +302,38 @@ async function enviarParaBackend(payload) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
-        
-        console.log(response)
-
         const resultado = await response.json();
 
-        console.log("criou oau")
+        // 409 -> Já pago
+        if (response.status === 409) {
+            alert(resultado.error || 'Usuário já possui inscrição paga.');
+            return;
+        }
 
-        if (response.ok) {
-            if (payload.paymentMethod === 'pix') {
-                mostrarPix(resultado);
-
-            } else if (payload.paymentMethod === 'cartao') {
-                alert("Pagamento Aprovado com Sucesso! Bem-vindo(a) ao curso.");
-                window.location.href = "/";
-            }
-
-        } else {
+        if (!response.ok) {
             // Mostra o erro que veio do backend (ex: Saldo insuficiente)
             alert('Erro: ' + (resultado.error || 'Erro desconhecido'));
+            return;
+        }
+
+        // Se o backend indicar resume (há pagamento pendente), reapresentamos o QR/infos
+        if (resultado.resume) {
+            // resultado já contém payment, paymentId e valor
+            mostrarPix(resultado);
+            return;
+        }
+
+        if (payload.paymentMethod === 'pix') {
+            mostrarPix(resultado);
+
+        } else if (payload.paymentMethod === 'cartao') {
+            // Para cartão, o backend retorna um status — se aprovado, confirmamos, senão informamos o status
+            if (resultado.status === 'approved') {
+                alert("Pagamento Aprovado com Sucesso! Bem-vindo(a) ao curso.");
+                window.location.href = "/";
+            } else {
+                alert('Pagamento em processamento. Status: ' + (resultado.status || 'desconhecido'));
+            }
         }
 
     } catch (error) {
@@ -192,9 +346,14 @@ function mostrarPix(resultado) {
     const { qrCodeBase64, qrCodeCopyPaste } = resultado.payment;
     const { paymentId, valor } = resultado;
     const qrBox = document.querySelector('.qr-placeholder');
+    // Mostrar nota de resume somente se a modalidade anterior for igual à selecionada (ou não informada)
+    const currentModality = document.getElementById('modalidade') ? document.getElementById('modalidade').value : null;
+    const showResume = resultado.resume && (!resultado.modalidadeAnterior || resultado.modalidadeAnterior === currentModality);
+    const resumeNote = showResume ? '<p style="color:#ffd700; font-weight:700;">Você já iniciou um pagamento. Retome o pagamento abaixo.</p>' : '';
 
     qrBox.innerHTML = `
         <div style="text-align: center; gap: 15px; display: flex; flex-direction: column; align-items: center;">
+            ${resumeNote}
             <h4 style="color: #fff;">Valor: <strong style="color: #39ff14;">R$ ${valor.toFixed(2)}</strong></h4>
             <p style="color:#39ff14; font-weight:bold;">Escaneie o QR Code:</p>
             <img src="data:image/png;base64,${qrCodeBase64}" style="width:200px; border-radius:10px; border: 4px solid white;">
