@@ -7,8 +7,8 @@
     <title>Finalizar Inscrição - Curso de Matemática</title>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800;900&display=swap"
         rel="stylesheet">
-    <link rel="stylesheet" href="/styles/cadastro.css">
-    <link rel="shortcut icon" href="/imagens/logo_diego.png">
+    <link rel="stylesheet" href="styles/cadastro.css">
+    <link rel="shortcut icon" href="imagens/logo_diego.png">
 
     <script src="https://sdk.mercadopago.com/js/v2"></script>
 </head>
@@ -300,14 +300,24 @@
                     <div class="qr-placeholder">
                         <p>O QR Code aparecerá aqui após gerar o pagamento.</p>
                     </div>
-                </div>
+
+                    <div class="coupon-container">
+                        <label for="input-cupom" class="coupon-label">Possui um cupom?</label>
+                        <div class="coupon-wrapper">
+                            <input type="text" id="input-cupom" placeholder="Digite seu cupom" autocomplete="off">
+                            <div id="coupon-feedback"></div>
+                        </div>
+                        <small style="color: #aaa; font-size: 0.8rem; margin-top: 5px; display:block;">
+                            (O desconto será aplicado ao gerar o pagamento)
+                        </small>
+                    </div>
+                    </div>
 
             </div>
         </div>
     </section>
 
-    <script src="/scripts/validateCpf.js" defer></script>
-    <script src="/scripts/cadastro.js" defer></script>
+    <script src="scripts/cadastro.js" defer></script>
 </body>
 
 </html>
