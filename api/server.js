@@ -22,26 +22,38 @@ app.get('/favicon.ico', (req, res) => {
 
 
 // Caminhos corretos partindo de api/server.js
-app.use('/styles', express.static(path.join(__dirname, '../src/styles')));
-app.use('/scripts', express.static(path.join(__dirname, '../src/scripts')));
+app.use('/styles', express.static(path.join(__dirname, '../public/styles')));
+app.use('/scripts', express.static(path.join(__dirname, '../public/scripts')));
 app.use('/images', express.static(path.join(__dirname, '../public/imagens')));
 app.use('/public', express.static(path.join(__dirname, '../public')));
 
 //ROTA DA API - CADASTRO
 app.use("/api/enrollment", enrollmentRoutes);
 
+//  Torna o global.css público
+app.get('/global.css', (req, res) => {
+    // Caminho: api/server.js -> ../public/global.css
+    res.sendFile(path.join(__dirname, '../public/global.css'));
+});
 
 // --- ROTAS DE PÁGINAS ---
 app.get('/', (req, res) => {
-    // Caminho: api/server.js -> ../src/pages/lpg.html
-    res.sendFile(path.join(__dirname, '../src/pages/lpg.html'));
+    // Caminho: api/server.js -> ../public/index.html
+    res.sendFile(path.join(__dirname, '../public/index.html'));
 });
 
 app.get('/cadastro', (req, res) => {
-    // Caminho: api/server.js -> ../src/pages/cadastro.html
-    res.sendFile(path.join(__dirname, '../src/pages/cadastro.html'));
+    // Caminho: api/server.js -> ../public/cadastro.html
+    res.sendFile(path.join(__dirname, '../public/cadastro.html'));
 });
 
+
+/*
+app.get('/login', (req, res) => {
+    // Caminho: api/server.js -> ../public/login.html
+    res.sendFile(path.join(__dirname, '../public/login.html'));
+});
+*/
 
 // --- ROTAS PRIVADAS / 404 ---
 app.get('*', (req, res) => {

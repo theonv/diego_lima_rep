@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Curso de Matemática</title>
+    <link rel="shortcut icon" href="/favicon.ico">
+
+    <link rel="stylesheet" href="/styles/login.css">
+    <link rel="stylesheet" href="/global.css">
+</head>
+
+<body>
+
+    <div class="container">
+        <img src="images/logo_diego.png" alt="Logo" class="logo">
+
+
+        <h2 style="color:white; font-size: 30px;">Área de Acesso</h2>
+
+
+        <form class="form_login">
+
+            <label class="labels" for="email" style="color: white;">E-mail</label>
+            <input type="email" id="email" placeholder="Digite seu e-mail" style="margin-bottom: 10px;">
+
+
+            <label class="labels" for="senha" style="color: white">Senha</label>
+
+            <div class="password-box">
+                <input type="password" id="senha" placeholder="Digite sua senha">
+                <span class="show-pass" style="color: white; align-self: center;">👁</span>
+            </div>
+            
+            <button class="btn" style="margin-top: 50px;">Entrar</button>
+
+            <a href="/cadastro" class="cadastro-link" style="color: gray;">Cadastrar-se</a>
+        </form>
+
+    </div>
+
+</body>
+
+<script> // MOSTRAR E ESCONDER SENHA
+    document.querySelector(".show-pass").addEventListener("click", () => {
+    const i = document.getElementById("senha")
+    i.type = i.type === "password" ? "text" : "password"
+})
+</script>
+
+</html>
