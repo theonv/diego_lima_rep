@@ -33,20 +33,41 @@
                 <span class="show-pass" style="color: white; align-self: center;">👁</span>
             </div>
             
-            <button class="btn" style="margin-top: 50px;">Entrar</button>
+            <button onclick="login()" class="btn" style="margin-top: 50px;">Entrar</button>
 
-            <a href="/cadastro" class="cadastro-link" style="color: gray;">Cadastrar-se</a>
+            <div style="display: flex; justify-content: space-around; margin-top: 7px;">
+                <a href="/cadastro" class="cadastro-link">Cadastrar-se</a>
+                
+                <a href="/" class="cadastro-link">Quem Somos?</a>
+            </div>
         </form>
 
     </div>
 
 </body>
 
-<script> // MOSTRAR E ESCONDER SENHA
+<script> 
+// MOSTRAR E ESCONDER SENHA
     document.querySelector(".show-pass").addEventListener("click", () => {
     const i = document.getElementById("senha")
     i.type = i.type === "password" ? "text" : "password"
 })
+
+// FUNÇÃO DE LOGIN (APENAS EXEMPLO, SEM BACK-END)
+function login() {
+    event.preventDefault(); // Evita o envio do formulário
+
+    const email = document.getElementById("email").value;
+    const senha = document.getElementById("senha").value;
+
+    // Exemplo de validação simples
+    if (email && senha) {
+        window.location.href = "videoaulas"; // Redireciona para a página de videoaulas
+        alert("Login realizado com sucesso!");
+    } else {
+        alert("Por favor, preencha todos os campos.");
+    }
+}
 </script>
 
 </html>

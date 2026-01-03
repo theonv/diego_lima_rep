@@ -1,3 +1,10 @@
+:root {
+    --color-purple-neon: #9d4edd; /* Roxo do Diego Lima */
+    --color-lime-green: rgb(195, 254, 2); /* Verde Lima */
+}
+
+
+
 .diego {
     display: flex;
     align-items: center;
@@ -7,10 +14,36 @@
     margin-left: 25px;
 }
 
-a {
+/* Estilo base dos links da Navbar */
+.pgs a {
     color: white;
-    width: min-content;  
-    font-size: 20px;  
+    text-decoration: none;
+    font-size: 21px;
+    width: min-content;
+    transition: all 0.3s ease; /* Suaviza a troca de cor */
+    position: relative;
+
+    /*MANTENDO ALINHAMENTO*/
+    padding: 8px 16px; /* Mesmo padding do ativo */
+    border: 2px solid transparent; /* Borda invisível para ocupar espaço */
+}
+
+/* Efeito Hover (Ao passar o mouse): Fica VERDE NEON */
+.pgs a:hover {
+    color: var(--color-lime-green);
+    text-shadow: 0 0 12px rgba(57, 255, 20, 0.7); /* O brilho verde */
+    transform: translateY(-2px); /* Leve subida */
+}
+
+/* Estado Ativo (Página Atual): Retângulo Roxo */
+.pgs a.active {
+    color: var(--color-purple-neon);       /* Cor do texto */
+    border: 2px solid var(--color-purple-neon); /* A borda (o retângulo) */
+    padding: 8px 16px;                     /* Espaço entre o texto e a borda */
+    border-radius: 8px;                    /* Cantos levemente arredondados (opcional) */
+    
+    /* Efeito de brilho ao redor do retângulo */
+    box-shadow: 0 0 20px rgba(157, 78, 221, 0.6), inset 0 0 10px rgba(157, 78, 221, 0.2);    
 }
 
 .pgs {
@@ -19,7 +52,7 @@ a {
     justify-content: space-between;
 }
 
-/*FIM DA ESTILIZAÇÃO DA NAVBAR*/
+/* ----------------- FIM DA ESTILIZAÇÃO DA NAVBAR ----------------- */
 
 
 .topbar {
@@ -64,41 +97,39 @@ label {
     text-align: center;
 }
 
+.modulos {
+    display: flex;
+    width: 100%;
+
+    justify-content: space-between;
+}
+
 
 .modulo {
     background: #1c1c1c;
     border: 1px solid #333;
     border-radius: 8px;
-    margin-bottom: 12px;
-    overflow: hidden;
-    color: #fff;
+
+    width: 20%;
+    height: 350px;
+    
     font-family: Arial, sans-serif;
 }
 
 .header-mod {
     background: #222;
-    padding: 15px;
+    height: 40px;
     user-select: none;
-    transition: background 0.2s;
 
-    color:white; font-size: 25px; text-align: left;
+    color:white; font-size: 25px;
+
+    display: flex;
+    justify-content: left;
+    align-items: center;
+    padding-left: 15px;
+
 }
 
 .header-mod:hover {
     background: #2d2d2d;
-}
-
-/*estilização do conteudo de cada modulo qnd estiver fechado*/
-.content-mod {
-    height: auto;
-    max-height: 0;
-    overflow: hidden;
-    padding: 0 15px;
-    transition: max-height 0.1s ;
-}
-
-/*estilização do conteudo de cada modulo qnd estiver aberto*/
-.modulo.open .content-mod {
-    padding: 15px;
-    max-height: 500px;
 }

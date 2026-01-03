@@ -9,17 +9,9 @@ body {
     padding: 0;
 
     width: 100%;
-    background: linear-gradient(to bottom, #000000, #51059B);
-}
-
-body {
     min-height: 100vh;
-    /* 100% da altura da viewport */
-    background: linear-gradient(to bottom, #000000, #51059B);
 
-    background-repeat: no-repeat;
-    background-attachment: fixed; /* opcional, fixa o gradiente na viewport */
-    background-size: cover;
+    background-color: black;
 }
 
 .logo {
@@ -29,7 +21,7 @@ body {
 }
 
 .navbar {
-    background-color: black;
+
     height: 80px;
 
     display: flex;

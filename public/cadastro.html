@@ -24,7 +24,9 @@
 
                 <form class="checkout-form">
 
-                    <a href="/" class="back-arrow">← Voltar</a>
+                    <label     class="back-arrow"     onclick="history.length > 1 ? history.back() : window.location.href='/'">
+                        ← Voltar
+                    </label>
 
                     <div class="form-group">
                         <label for="nome">Nome Completo</label>
@@ -321,3 +323,4 @@
 </body>
 
 </html>
+

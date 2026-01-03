@@ -53,6 +53,11 @@ app.get('/login', (req, res) => {
     // Caminho: api/server.js -> ../public/login.html
     res.sendFile(path.join(__dirname, '../public/login.html'));
 });
+
+app.get('/videoaulas', (req, res) => {
+    // Caminho: api/server.js -> ../public/videoaulas.html
+    res.sendFile(path.join(__dirname, '../public/videoaulas.html'));
+});
 */
 
 // --- ROTAS PRIVADAS / 404 ---
