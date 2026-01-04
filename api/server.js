@@ -52,7 +52,7 @@ app.get('/debug-imagens', (req, res) => {
 // Caminhos corretos partindo de api/server.js
 app.use('/styles', express.static(path.join(__dirname, '../public/styles')));
 app.use('/scripts', express.static(path.join(__dirname, '../public/scripts')));
-app.use('/images', express.static(path.join(__dirname, '../public/imagens')));
+app.use('/images', express.static(path.join(__dirname, '../public/images')));
 app.use('/public', express.static(path.join(__dirname, '../public')));
 
 //ROTA DA API - CADASTRO
@@ -76,7 +76,7 @@ app.get('/cadastro', (req, res) => {
 });
 
 
-/*
+
 app.get('/login', (req, res) => {
     // Caminho: api/server.js -> ../public/login.html
     res.sendFile(path.join(__dirname, '../public/login.html'));
@@ -86,7 +86,7 @@ app.get('/videoaulas', (req, res) => {
     // Caminho: api/server.js -> ../public/videoaulas.html
     res.sendFile(path.join(__dirname, '../public/videoaulas.html'));
 });
-*/
+
 
 // --- ROTAS PRIVADAS / 404 ---
 app.get('*', (req, res) => {
