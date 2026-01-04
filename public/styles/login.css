@@ -3,6 +3,8 @@ body {
     align-items: center;
     justify-content: center;
     font-family: "Montserrat", sans-serif;
+    background: linear-gradient(to bottom, #000000, #51059B);
+
 }
 
 .container {
