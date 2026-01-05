@@ -20,32 +20,7 @@ app.use(express.json());
 
 // Favicon
 app.get('/favicon.ico', (req, res) => {
-    res.sendFile(path.join(__dirname, '../public/imagens/logo_diego.png'));
-});
-
-
-// Rota de teste para ver o que tem na pasta
-app.get('/debug-imagens', (req, res) => {
-    // Tenta ler a pasta 'imagens' (português)
-    const caminhoPT = path.join(__dirname, '../public/imagens');
-    // Tenta ler a pasta 'images' (inglês)
-    const caminhoEN = path.join(__dirname, '../public/images');
-
-    let resultado = {};
-
-    if (fs.existsSync(caminhoPT)) {
-        resultado.pasta_imagens_PT = fs.readdirSync(caminhoPT);
-    } else {
-        resultado.pasta_imagens_PT = "NÃO ENCONTRADA";
-    }
-
-    if (fs.existsSync(caminhoEN)) {
-        resultado.pasta_images_EN = fs.readdirSync(caminhoEN);
-    } else {
-        resultado.pasta_images_EN = "NÃO ENCONTRADA";
-    }
-
-    res.json(resultado);
+    res.sendFile(path.join(__dirname, '../public/images/logo_diego.png'));
 });
 
 

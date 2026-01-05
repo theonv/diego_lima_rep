@@ -32,7 +32,7 @@
     <div class="corpo">
         
         <div class="status-container">
-            <h1 style="color: white;">Olá, [Nome do Aluno]!</h1>
+            <h1 style="color: white;">Olá, <span id="nome-aluno">Aluno</span>!</h1>
             <p class="welcome-sub" style="color: white;">Continue de onde parou. Seu progresso geral: <span class="destaque-verde">35%</span></p>
             
             <div class="barra-total">
@@ -61,4 +61,23 @@
         </div>
     </div>
 </body>
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const nomeSalvo = localStorage.getItem('nomeAluno');
+        
+        // 2. Busca o elemento HTML onde vamos escrever
+        const elementoNome = document.getElementById('nome-aluno');
+
+        if (nomeSalvo && elementoNome) {
+            const primeiroNome = nomeSalvo.split(' ')[0].toLowerCase();
+            const primeiroNomeOrganizado = primeiroNome.charAt(0).toUpperCase() + primeiroNome.slice(1);
+            
+            elementoNome.textContent = primeiroNomeOrganizado;
+
+            //FAZER TROÇO DO NOME COMPOSTO DEPOIS
+        }
+    });
+</script>
 </html>
+

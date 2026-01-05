@@ -1,0 +1,10 @@
+import { PrismaClient } from '@prisma/client';
+
+// Evita criar múltiplas conexões durante o hot-reload (desenvolvimento)
+const prisma = global.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma;
+}
+
+export default prisma;

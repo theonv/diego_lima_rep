@@ -426,6 +426,7 @@ export const checkPaymentStatus = async (req, res) => {
     }
 };
 
+//no cadastro, verifica se já existe inscrição com cpf ou email
 export const getExistingEnrollment = async (req, res) => {
     try {
         const { cpf, email } = req.query;
@@ -450,4 +451,40 @@ export const getExistingEnrollment = async (req, res) => {
         console.error('❌ [getExistingEnrollment] Erro:', err.message);
         res.status(500).json({ error: 'Erro ao consultar inscrição existente' });
     }
+};
+
+
+//Verificação de Login
+
+import bd from "../db.js";
+
+export const verifyLogin = async (req, res) => {
+    try {
+        console.log("vou pegar os emails")
+        const { email, pass } = req.body;
+        console.log("peguei os emails")
+        const user = await bd.enrollment.findUnique({ where: { email: email }});
+        if (!user) {
+            return res.status(404).json({ error: "E-mail não encontrado." })
+        };
+
+        if (user.cpf !== pass) {
+            return res.status(401).json({ error: "Senha incorreta." });
+        };
+                
+        if (user.status !== 'PAID') {
+             return res.status(403).json({ error: "Seu pagamento ainda não foi confirmado." });
+        }
+
+        return res.status(200).json({ 
+            success: true, 
+            message: "Login bem-sucedido.",
+            userId: user.id,
+            userName: user.name
+        });
+    }
+    catch (err) {
+        console.error('❌ [verifyLogin] Erro:', err.message);
+        res.status(500).json({ error: 'Erro ao verificar login' });
+        };
 };
