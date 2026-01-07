@@ -5,8 +5,6 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import enrollmentRoutes from "./src/routes/enrollmentRoutes.js";
 
-import fs from 'fs'
-
 
 const __filename = fileURLToPath(import.meta.url);
 // Este arquivo está em: api/server.js
@@ -62,6 +60,15 @@ app.get('/videoaulas', (req, res) => {
     res.sendFile(path.join(__dirname, '../public/videoaulas.html'));
 });
 
+app.get('/simulados', (req, res) => {
+    // Caminho: api/server.js -> ../public/simulados.html
+    res.sendFile(path.join(__dirname, '../public/simulados.html'));
+})
+
+app.get('/informes', (req, res) => {
+    // Caminho: api/server.js -> ../public/informes.html
+    res.sendFile(path.join(__dirname, '../public/informes.html'));
+})
 
 // --- ROTAS PRIVADAS / 404 ---
 app.get('*', (req, res) => {
